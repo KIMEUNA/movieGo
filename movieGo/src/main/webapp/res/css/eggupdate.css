@@ -1,0 +1,213 @@
+@charset "utf-8";
+
+/* 공통 추가 ------------------------------------------------------------------ */
+.heading-new {position:relative; width:100%; height:40px; background:#e2e0d2;}
+.heading-new .goto-link {display:inline-block; padding:0 18px; background:#88867e;}
+.heading-new .goto-link h4 {padding-right:8px; line-height:40px; color:#ffffff; font-size:12px; font-family:'NanumBarunGothicBold'; font-weight:normal; letter-spacing:-1px; background:url('../images/bg_arrow_dotw.png') no-repeat right center;}
+.heading-new .txt-write {position:absolute; right:6px; top:0; color:#333333; line-height:40px; font-family:'NanumBarunGothicBold';}
+.heading-new .txt-write > strong{color:#7c0001;}
+.heading-new .txt-write > a{display:inline-block; width:70px; height:26px; margin-left:4px; background:url('../images/sprite_corner.png') no-repeat; color:#ffffff; text-align:center; vertical-align:middle;}
+.heading-new .txt-write > a span{display:block; height:26px; line-height:26px; background:url('../images/sprite_corner.png') no-repeat 0 0;}
+.heading-new .txt-write .link-gradewrite{ background-position:0 -1024px;}
+.heading-new .txt-write .link-gradewrite span{background-position:100% -1050px;}
+.heading-new .txt-write .link-reviewwrite{position:relative; background-position:0 -1076px;}
+.heading-new .txt-write .link-reviewwrite span {padding-right:8px; background-position:100% -1102px;}
+.heading-new .txt-write .link-reviewwrite span:after {content:''; position:absolute; right:15px; top:10px; width:3px; height:5px;}
+
+/* egg-grade */
+.egg-grade {position:relative; height:160px; padding:10px;}
+.egg-grade .info1, .egg-grade .info2 {position:absolute; z-index:2; font-family:'NanumBarunGothicBold'; color:#000000; text-decoration:underline; line-height:1.7;}
+.egg-grade .info1 {left:10px; top:10px;}
+.egg-grade .info2 {right:10px; top:10px; text-align:right;}
+
+.egg-grade .massagebox {position:absolute; left:50%; top:50%; /* margin:-25px 0 0 -130px; */ margin:0 0 0 -130px; width:260px;}
+.egg-grade .massagebox > p {font-size:12px; color:#666666; text-align:center;}
+.egg-grade .massagebox > p em {color:#b8131a;}
+.egg-grade .massagebox .msg-em {display:block; font-size:18px; color:#000000; font-family:'NanumBarunGothicBold';}
+.egg-grade .massagebox .msg-em > strong {font-size:27px;}
+
+.egg-grade .egg-gage {position:absolute; left:85px; /* top:55px; */ top:80px; margin:0;}
+.egg-gage {display:inline-block; width:auto !important; line-height:1;}
+.egg-gage.small .percent {display:inline-block; margin-top:8px; font-family:'verdana'; font-size:12px; color:#000000; vertical-align:middle;}
+.egg-gage.small .egg {display:inline-block; margin-right:2px; width:18px; height:26px; background:url('../images/sprite_egg.png') no-repeat 0 -47px; vertical-align:middle;}
+.egg-gage.small .egg.good {width:13px; background-position:-22px -47px;}
+.egg-gage.small .egg.great {width:16px; background-position:-41px -47px;}
+
+.egg-gage.big .percent {display:inline-block; margin-top:5px; font-family:'Helvetica'; font-size:30px; color:#000000; vertical-align:middle;}
+.egg-gage.big .percent > strong {font-family:inherit; font-size:60px; letter-spacing:-2px;}
+.egg-gage.big .egg {display:inline-block; margin-right:5px; width:48px; height:65px; background:url('../images/sprite_egg.png') no-repeat 0 -100px; vertical-align:middle;}
+.egg-gage.big .egg.good {background-position:-48px -100px;}
+.egg-gage.big .egg.great {background-position:-96px -100px;}
+
+.egg-grade .radar-graph {position:absolute; right:65px; /* top:0; */ top:20px; width:200px;}
+.egg-grade.graphonly .radar-graph {position:static; margin:10px auto 0;}
+.egg-grade.eggonly {text-align:center;}
+.egg-grade.eggonly .egg-gage {position:static; margin:70px auto;}
+.sorry {padding-top:55px; text-align:center; background:url('../images/ico_sorry.png') no-repeat 50% 0;}
+.egg-grade .radar-graph .sorry {margin-top:50px;}
+.sect-graph .radar-graph .sorry {margin-top:55px;}
+
+.egg-icon {display:inline-block; margin-right:6px; width:22px; height:22px; background:url('../images/sprite_egg.png') no-repeat 0 0; vertical-align:middle;}
+.egg-icon.good {width:17px; background-position:-27px 0;}
+
+.box-image .thumb-image .theater-sticker {margin-top:10px; text-align:center;} 
+.box-image .thumb-image .theater-sticker > span {overflow:hidden; display:block; margin:5px auto 0; text-indent:-9999em; background:url('../images/sprite_special_theaters.png') no-repeat 0 0;} 
+.box-image .thumb-image .theater-sticker > span:first-child {margin-top:0;}
+.box-image .thumb-image .theater-sticker .imax {width:44px; height:9px;}
+.box-image .thumb-image .theater-sticker .fourdx {width:38px; height:14px; background-position:0 -14px;} 
+.box-image .thumb-image .theater-sticker .screenx {width:55px; height:20px; background-position:0 -30px;} 
+.box-image .thumb-image .theater-sticker .fourdx + .screenx {margin-top:0px;}
+
+/* 평점수정 팝업 */
+.layer-wrap .pop-contents.write-mygrade {padding:30px 40px;}
+.mygrade-cont .movietit {padding-bottom:15px; font-size:26px; font-family:'NanumBarunGothicBold'; text-align:center; border-bottom:1px dashed #ccc9c7;}
+.likeornot {position:relative; height:140px;}
+.likeornot .writerinfo {position:absolute; left:50%; top:35px; width:120px; margin-left:-60px; text-align:center;}
+.likeornot .writerinfo .box-image {margin:0 auto 7px; width:62px; height:62px;}
+.likeornot .writerinfo .box-image .thumb-image {width:62px; height:62px;}
+.likeornot .writerinfo .box-image .thumb-image img{width:62px; height:62px;}
+.likeornot .writerinfo .box-image .thumb-image .profile-mask{ display:block; position:absolute; left:0; top:0; width:62px; height:62px; background:url('../images/bg_photocircle.png') 0 0 no-repeat;}
+.likeornot .writerinfo .position {padding:0;}
+.likeornot .writerinfo .position .see{padding:0 2px; color:#ffffff; line-height:16px;}
+.likeornot .writerinfo .writer-name {font-family:'NanumBarunGothicBold'; color:#000000;}
+.likeornot .likebox {position:absolute; top:50px; width:190px; background:url('../images/sprite_likeornot.png') no-repeat 100% -62px;}
+.likeornot .likebox .likebox-inner {font-family:'NanumBarunGothicBold'; color:#000000; text-align:center; background:url('../images/sprite_likeornot.png') no-repeat 0 0;}
+.likeornot .likebox .likebox-inner > label {display:block; padding:16px 10px; height:30px;}
+.likeornot .likebox.t1 {right:372px;}
+.likeornot .likebox.t2 {left:372px; background-position:0 -310px;}
+.likeornot .likebox.t1 .likebox-inner {margin:0 24px 0 -14px;}
+.likeornot .likebox.t2 .likebox-inner {margin:0 -14px 0 24px; background-position:100% -248px;}
+.likeornot .likebox.t1.on {background-position:100% -186px;}
+.likeornot .likebox.t1.on .likebox-inner{background-position:0 -124px;}
+.likeornot .likebox.t2.on {background-position:0 -434px;}
+.likeornot .likebox.t2.on .likebox-inner{background-position:100% -372px;}
+.likeornot .likebox .egg-icon {position:relative; overflow:hidden; margin-right:6px; width:32px; height:30px; background:url('../images/sprite_egg.png') no-repeat 0 -200px; vertical-align:middle;}
+.likeornot .likebox .egg-icon input{position:absolute; left:50%; top:-50px;}
+.likeornot .likebox .egg-icon.good {width:22px; background-position:-42px -200px;}
+
+.mygrade-cont .textbox {padding:10px; background:#ffffff; border:1px solid #999999;}
+.mygrade-cont .textbox textarea {width:100%; padding:0; border:0; background:none; font-size:13px; color:#000000;}
+.mygrade-cont .footbox {margin-top:8px;}
+.mygrade-cont .footbox:after {display:block; content:''; clear:both;}
+.mygrade-cont .footbox .role {float:left; margin-top:6px;}
+.mygrade-cont .footbox .rbox {float:right;}
+.mygrade-cont .footbox .rbox .count {color:#666666; vertical-align:middle;}
+.mygrade-cont .footbox .rbox .count strong {color:#000000;}
+.mygrade-cont .footbox .rbox button {margin-left:8px;}
+
+/* 매력포인트 팝업 */
+.layer-wrap .pop-contents.charm-point {padding:30px 40px;}
+.charm-cont .headtxt {padding-bottom:15px; font-size:13px; border-bottom:1px dashed #ccc9c7;}
+.charm-cont .inp-choose {padding:15px 0 0}
+.charm-cont .inp-choose > * {vertical-align:middle;}
+.charm-cont .inp-choose input {margin-left:46px;}
+.charm-cont .inp-choose input:first-child {margin-left:0;}
+
+.layer-wrap .layer-contents.on-shadow {
+	-webkit-box-shadow: #333 5px 5px 15px;
+	-moz-box-shadow: #333 5px 5px 15px;
+	box-shadow: #333 5px 5px 15px;
+	behavior: url(http://img.cgv.co.kr/R2014/css/PIE.htc);
+}
+
+
+
+
+
+/* layout.css 재정의 --------------------------------------------------------- */
+.layer-contents {height:auto;}
+.stillcut-viewer .layer-contents {height:506px;}
+
+
+
+
+
+/* module.css 재정의 --------------------------------------------------------- */
+.box-contents .writer-comment {margin-top:6px;}
+
+/* 삭제 버튼 */
+.btn-delete{background-position:-200px -41px;}
+.btn-my-delete{background-position:-200px -41px;}
+
+/* 그래프 영역 */
+.graph li{overflow:hidden; height:250px;}
+.graph .radar-graph {margin:0 30px 0 15px;}
+.writerinfo .writer-name {font-size:12px; cursor:pointer;}
+.writerinfo .writer-opinion {font-size:12px; color:#000000;}
+.popwrap .writerinfo .writer-name {cursor:auto;}
+
+/* 영화차트 리스트 */
+[class|="sect"][class*="chart"] .score .egg-gage,
+[class|="sect"][class*="chart"] .score .percent {vertical-align:middle;}
+[class|="sect"][class*="chart"] .score .egg-gage {margin-top:-10px; margin-left:2px; padding-left:6px; background:url('../images/bg_writeinfo.gif') 0 12px no-repeat;}
+[class|="sect"][class*="chart"] .score .percent span{vertical-align:initial;}
+
+[class|="sect-base"] .score .egg-gage,
+[class|="sect-base"] .score .percent {vertical-align:middle;}
+[class|="sect-base"] .score .egg-gage {margin-top:-8px; margin-left:2px; padding-left:6px; background:url('../images/bg_writeinfo.gif') 0 12px no-repeat;}
+
+/* 평점 */
+[class|="sect"][class*="chart"].gradelist ul > li .egg-gage .percent {color:#b5b4ac;}
+[class|="sect"][class*="chart"].gradelist ul > li.on .egg-gage .percent {color:#000000;}
+
+/*141217 평점 추가*/
+.point_col2 li div.box-image {padding-right:26px !important;}
+.point_col2 li div.box-contents {padding-left:108px !important;}
+.point_col2 li:nth-child(2n+1) div.box-image {margin-left: 0!important; padding-left: 0!important;}
+.point_col2 li:nth-child(2n+1) div.box-contents {padding-left:88px !important;}
+
+.point_col2 li div.box-image {padding-right:26px !important;}
+.point_col2 li div.box-contents {padding-left:108px !important;}
+.point_col2 li:nth-child(2n+1) div.box-image {margin-left: 0!important; padding-left: 0!important;}
+.point_col2 li:nth-child(2n+1) div.box-contents {padding-left:88px !important;}
+
+.point_col2 .writerinfo li.point_edit {position: absolute;top:-5px;right: 10px;padding: 0;} 
+.point_col2 .writerinfo li.point_notify {position: absolute;top:-5px;right:-10px;padding:0;}
+.point_col2 li:nth-child(2n+1) .writerinfo li.point_notify {right:10px;}
+
+.point_col2 > li div.box-comment {margin:4px 21px 0 108px !important;}
+.point_col2 > li:nth-child(2n+1) div.box-comment {margin:4px 40px 0 88px !important;}
+.point_col2 .writerinfo {position:relative; height:24px;}
+.point_col2 .writerinfo .writer-etc {position:absolute; left:0; bottom:-146px; padding:0 !important;}
+.point_col2 .writerinfo .writer-etc .vip {display:block; color:#7c0aad; font-size:13px; line-height:1 !important;}
+.point_col2 .writerinfo .writer-etc .day {padding-right:8px; margin-right:6px; background:url('../images/bg_writeinfo.gif')  no-repeat 100% 0;}
+.point_col2 .writerinfo .writer-etc .like {color:#000000;}
+.point_col2 .writerinfo .writer-etc > * {vertical-align:middle;}
+
+/*영화상세 페이지 평점*/
+.wrap-movie-detail ul.point_col2>li .box-comment p {color:#000000;}
+
+
+
+
+
+/* common.css 재정의 --------------------------------------------------------- */
+.pop-contents .set-btn .w70 {width:70px;}
+.pop-contents .sect-viw-rated>.box-contents>.title{margin:5px 0 11px;}
+
+.pop-contents .sect-viw-rated .box-contents .writer-comment {padding:0; margin-top:6px;}
+
+/* 회원평점 모아보기 */
+.pop-contents.members-rate {padding:25px 30px 25px 60px;}
+.pop-contents.members-rate .tit-area {padding-bottom:7px; border-bottom:2px solid #000000;}
+.pop-contents.members-rate .tit-area h2 {font-family:NanumBarunGothicBold,'맑은 고딕','돋움',Dotum,sans-serif; font-size:22px; color:#000000;}
+.pop-contents.members-rate .sect-viw-rated {position:relative; padding:10px 0; width:auto; border-bottom:1px solid #cfcfcd;}
+.pop-contents.members-rate .tit-area + .sect-viw-rated {padding-top:20px;}
+.pop-contents.members-rate .sect-viw-rated > .box-image {width:90px; height:126px;}
+.pop-contents.members-rate .sect-viw-rated .writerinfo li.day {position:absolute; right:8px; top:20px; padding:0; text-align:right; background:none;}
+.pop-contents.members-rate .tit-area + .sect-viw-rated .writerinfo li.day {top:28px;}
+
+.movielog-detail-wrap .writerinfo .layer-wrap {top:50%; left:50%; z-index:200;}
+
+
+
+
+
+/* content.css 재정의 --------------------------------------------------------- */
+.sect-today-best .box-contents .egg-gage {margin-top:-10px; margin-left:2px; padding-left:6px; background:url('../images/bg_writeinfo.gif') 0 12px no-repeat; vertical-align:middle;}
+.wrap-point-mylist .point_col1 .sect-viw-rated .edit_wrap .box-contents {width:auto;}
+.warp-my-reviewlist .point_col1 .sect-viw-rated > .box-contents > .title {margin: 5px 0 11px;}
+.point_col1 .writerinfo li.mylist_user_id {line-height:22px; font-size:12px; position:100% 5px;}
+.point_col1 .writerinfo li.day {line-height:22px;}
+.point_col1 ul.writerinfo {margin-bottom:4px;}
+

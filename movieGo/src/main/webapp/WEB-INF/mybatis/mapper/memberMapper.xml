@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="member">
+
+	<select id="getMemberSeq" resultType="Integer">
+		SELECT member_seq.NEXTVAL FROM DUAL
+	</select>
+
+	<insert id="insertMember1" parameterType="com.moviego.member.Member">
+		INSERT INTO member1(mIdx, isMember) VALUES (#{memberIdx}, #{isMember})
+	</insert>
+
+	<insert id="insertMember2" parameterType="com.moviego.member.Member">
+		INSERT INTO member2(mIdx, id, name, pass, birth, email, tel)
+							VALUES(#{memberIdx}, #{id}, #{name}, #{pass}, #{birth}, #{email}, #{tel})
+	</insert>
+	
+	<insert id="insertAuthority" parameterType="com.moviego.member.Member">
+	    INSERT INTO memberAuthority(num, id, authority)
+	        VALUES (memberAuthority_seq.NEXTVAL, #{id}, #{authority})
+	</insert>
+	
+    <select id="readMember1" resultType="com.moviego.member.Member" parameterType="Integer">
+        SELECT m1.mIdx memberIdx, isMember, id, name, pass, 
+               reg_date, modify_date, last_login,
+               NVL(enabled, 0) enabled, email, tel, 
+               TO_CHAR(birth, 'YYYY-MM-DD') birth
+            FROM member1 m1 
+            LEFT OUTHER JOIN member2 m2 ON m1.mIdx = m2.mIdx
+            WHERE m1.mIdx = #{memberIdx}
+    </select>
+
+	<select id="readMember2" resultType="com.moviego.member.Member" parameterType="String">
+		SELECT mIdx memberIdx, id, name, pass, enabled, email, tel, reg_date, modify_date, last_login,
+		TO_CHAR(birth, 'YYYY-MM-DD') birth
+		FROM member2
+		WHERE id = #{id}
+	</select>
+	
+	<select id="getFindId" parameterType="com.moviego.member.Member" resultType="String">
+		select id
+		from member2
+		where email=#{email} and tel=#{tel}
+	</select>
+	
+	<select id="getFindPwd" parameterType="com.moviego.member.Member" resultType="com.moviego.member.Member">
+		select id, pass, name, email, tel, to_char(birth, 'yyyy-mm-dd') birth, enabled, sysdate m_regdate
+		from member2
+		where id=#{id} and email=#{email} and tel=#{tel}
+	</select>
+
+	<select id="telCheck" resultType="Integer" parameterType="String">
+		SELECT count(*) FROM member2 WHERE tel = #{tel}
+	</select>
+	
+	<select id="emailCheck" resultType="Integer" parameterType="String">
+		SELECT count(*) FROM member2 WHERE email = #{email}
+	</select>
+	
+	<update id="updateLastLogin" parameterType="String">
+		UPDATE member2 SET last_login = sysdate
+		WHERE id=#{id}
+	</update>
+	
+	<update id="updateMember1" parameterType="Integer">
+	    UPDATE member1 SET isMember=0
+	           WHERE mIdx=#{memberIdx}
+	</update>
+	
+    <update id="updateMember2" parameterType="com.moviego.member.Member">
+        UPDATE member2 SET pass=#{pass}, enabled=#{enabled}, 
+               email=#{email}, tel=#{tel}, birth=#{birth},
+               modify_date=SYSDATE 
+               WHERE id=#{id}
+    </update>
+    
+    <update id="updateAuthority" parameterType="com.moviego.member.Member">
+	     UPDATE memberAuthority SET id=#{id}, authority=#{authority}
+	         WHERE num=#{num}
+	</update>
+	
+    <delete id="deleteMember2" parameterType="String">
+    	DELETE FROM member2 WHERE id=#{id}
+    </delete>
+    
+    
+
+
+
+
+
+</mapper>

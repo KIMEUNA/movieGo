@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="gpa">
+
+	<sql id="join">
+		join ( select reserveidx , r.midx, id
+				from RESERVE_INFO r
+				JOIN member2 m ON r.midx=m.midx
+				WHERE scheduleidx in (
+									select scheduleidx
+									from schedule
+									where movieidx = #{movieIdx}
+												)
+				<if test="memberIdx != -1">
+					and r.midx = #{memberIdx}
+				</if>
+				) tb
+		on s.reserveidx=tb.reserveidx
+	</sql>
+
+	<insert id="insertGpa" parameterType="com.moviego.movies.gpa.Gpa">
+		INSERT INTO score (scoreIdx,reserveIdx,mIdx,content)
+			VALUES (score_seq.nextval, #{reserveIdx}, #{memberIdx},#{content})
+	</insert>
+	
+	<select id="getMovieList" resultType="com.moviego.movies.gpa.Gpa">
+		select tb.*, trunc(cnt/total, 2)*100 reservePer,nvl((select count(*)from movielike where movieidx=tb.movieidx),0) movielike
+		from(
+		      select movieidx, moviename, gradename, nvl(sum(reserve_ea), 0) cnt,poster,
+            to_char(regdate,'YYYY"년" MM"월" DD"일"') regdate
+		      from RESERVE_INFO r right outer join (
+		                  select scheduleidx, s.movieidx, moviename, gradename,nvl(i.POSTER, 'noimg') POSTER,m.regdate
+		                  from schedule s join movie m on s.movieidx=m.movieidx
+                      left outer join intro i on m.movieidx=i.movieidx 
+                      join grade g on m.gradeidx=g.gradeidx
+		                  where to_date(substr(REGEXP_REPLACE(starttime, '[^0-9]'), 0, 8), 'YYYYMMDD') > sysdate-1
+		            ) tb on r.scheduleidx=tb.scheduleidx
+		      group by movieidx, moviename, gradename,poster,regdate
+		) tb,
+		(select nvl(sum(reserve_ea),1) total
+		      from RESERVE_INFO r join (
+		                  select scheduleidx
+		                  from schedule
+		                  where to_date(substr(REGEXP_REPLACE(starttime, '[^0-9]'), 0, 8), 'YYYYMMDD') > sysdate-1
+		            ) tb on r.scheduleidx=tb.scheduleidx)
+		order by reserveper desc
+	</select>
+	
+	<select id="getMyMovieList" parameterType="map" resultType="com.moviego.movies.gpa.Gpa">
+     select nvl(scoreIdx,-1)scoreIdx,tb1.*
+      from score s right outer join
+      (select r.reserveidx,r.midx memberIdx ,tb.*,r.reserve_ea cnt
+      from reserve_info r 
+        join (
+                select s.movieidx,cinemaname,name multiplexname,
+                to_char(TO_DATE(starttime, 'YYYY-MM-DD HH24:MI'), 'YYYY"년" MM"월" DD"일"') starttime, scheduleidx,moviename
+                from schedule s
+                join movie v on s.movieidx=v.movieidx
+                join multiplex m on s.multiplexidx=m.multiplexidx
+                join cinema c on m.cinemaidx=c.cinemaidx
+                where s.movieidx=#{movieIdx}
+            ) tb on r.scheduleidx=tb.scheduleidx
+            where midx=#{memberIdx}
+          order by starttime desc
+       ) tb1 on s.reserveIdx=tb1.reserveidx
+       where rownum=1
+	</select>
+		
+	
+	<select id="getMovieCount" parameterType="map" resultType="Integer">
+		SELECT NVL(COUNT(*),0)
+		FROM (
+			SELECT movieIdx
+			FROM reserve_info r right outer JOIN (
+					SELECT scheduleIdx, s.movieIdx
+					FROM schedule s JOIN movie m on s.movieIdx=m.movieIdx
+					WHERE TO_DATE(substr(regexp_replace(starttime,'[^0-9]'),0,8),'YYYYMMDD') > sysdate-1
+			) tb ON r.scheduleIdx=tb.scheduleIdx
+		 GROUP BY movieIdx )
+	</select>
+	
+	<select id="dataCount" parameterType="map" resultType="Integer">
+		SELECT NVL(COUNT(*),0) 
+		FROM score s
+		<include refid="join"/>
+	</select>
+	
+	<select id="getGpaList" parameterType="map" resultType="com.moviego.movies.gpa.Gpa">
+  		SELECT * FROM (
+			SELECT ROWNUM rnum, tb.*, nvl((select count(*) from scorelike where scoreidx=tb.scoreidx), 0) likecount
+			FROM (
+					SELECT scoreIdx,s.reserveIdx, s.mIdx memberIdx ,id userId ,content, regdate
+					FROM score s 
+         			<include refid="join"/>
+          ORDER BY scoreIdx DESC
+          <![CDATA[
+			) tb WHERE ROWNUM <= #{end}
+		) WHERE rnum >= #{start}
+		]]>		
+	</select>
+	
+	<insert id="insertGpaLike" parameterType="com.moviego.movies.gpa.Gpa">
+		INSERT INTO scorelike (midx,scoreIdx) VALUES (#{memberIdx},#{scoreIdx})
+	</insert>
+	
+	
+	<delete id="deleteGpa" parameterType="Integer">
+		DELETE FROM score WHERE scoreIdx=#{scoreIdx}
+	</delete>
+	
+	<insert id="insertGpaReport" parameterType="com.moviego.movies.gpa.Gpa">
+		INSERT INTO scorereport (scoreIdx,mIdx,content) VALUES (#{scoreIdx},#{memberIdx},#{content}) 
+	</insert>
+	
+	<insert id="insertMovieLike" parameterType="com.moviego.movies.gpa.Gpa">
+		INSERT INTO movielike (movieIdx,mIdx) VALUES (#{movieIdx},#{memberIdx})
+	</insert>
+	
+	<update id="updateGpa" parameterType="com.moviego.movies.gpa.Gpa">
+		UPDATE score SET content=#{content} where scoreIdx=#{scoreIdx}
+	</update>
+
+
+</mapper>

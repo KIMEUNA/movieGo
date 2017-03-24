@@ -1,0 +1,53 @@
+@charset "utf-8"; 
+
+#footer, #header .im-wrap, #header .sect-service, #scroll-top,
+	.cgv-ad-wrap {
+	display: none !important
+}
+
+#header h1 {
+	position: static;
+	display: block;
+	width: auto !important;
+	height: auto !important;
+	padding-bottom: 15px !important;
+	margin-bottom: 15px !important;
+	border-bottom: 2px solid #000
+}
+
+#header h1>a {
+	display: block
+}
+
+#viewgrade, .company-wrap.cj:before, .linemap-wrap, .sect-aside-banner,
+	.skipnaiv {
+	display: none
+}
+
+.ico-grade {
+	position: static;
+	display: block;
+	font-size: 12px;
+	line-height: 1.2;
+	font-family: NanumBarunGothicBold
+}
+
+#print {
+	display: none
+}
+
+h1 {
+	display: block
+}
+
+.wrap-movie-collage .col-aside, .wrap-movie-collage .sect-cinematalk,
+	.wrap-movie-collage .sect-talk-list, .wrap-movie-collage .sect-talk-main,
+	.wrap-movie-collage .tit-heading-wrap, .wrap-movie-collage .wrap-collage-talk>p
+	{
+	display: none
+}
+
+.wrap-movie-collage .cols-content {
+	margin: 0;
+	padding: 0
+}

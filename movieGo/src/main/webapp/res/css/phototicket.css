@@ -1,0 +1,40 @@
+﻿@charset "utf-8";
+/* start : 201409 개선작업 ----------------------------------------------------- */
+
+/* 포토티켓 확대보기 */
+#dev2014 .pop-contents .box-phototicket > .box-image .thumb-image {padding:6px; width: 258px;}
+#dev2014 .pop-contents .box-phototicket > .box-image .thumb-image img {width: 100%; height:auto;}
+#dev2014 .pop-contents .box-phototicket > .box-image .thumb-image i {
+	/*background: url("../images/common/bg/bg_phototicket.png") no-repeat 0px 0px; left: 0px; top: 0px; width: 260px; height: 380px; display: block; position: absolute;*/
+	background: url("../bg_phototicket2.png") no-repeat 0px 0px; left: 0px; top: 0px; width: 270px; height:414px; display: block; position: absolute;
+}
+#dev2014 .pop-contents .box-phototicket .box-contents {
+	/*background: url("../images/common/bg/bg_phototicket01.png") no-repeat 0px 0px; padding: 16px 6px 30px; width: 270px; height: 280px; margin-left: 20px; float: left; position: relative;*/
+	background: url("../bg_phototicket3.png") no-repeat 0px 0px; padding: 22px 22px 30px; width: 226px; height: 356px; margin-left: 50px; float: left; position: relative;
+}
+#dev2014 .pop-contents .box-phototicket .box-contents .alert {
+	background: rgb(230, 230, 230); padding: 18px 0px 0px; height: 55px; text-align: center; font-size: 11px; margin-top: 60px;
+}
+#dev2014 .pop-contents .box-phototicket .box-contents .copy {
+	text-align: center; bottom: 20px; letter-spacing: -1px; font-family: Verdana, Geneva, sans-serif; font-size: 10px; position: absolute;
+}
+#dev2014 #layer_wrap_phototicket #btn-close {width:18px; height:18px; background:url(../sprite_btn.png) no-repeat -72px -62px;}
+#dev2014 #layer_wrap_phototicket .btn_wrap a {display:inline-block;}
+#dev2014 #layer_wrap_phototicket .btn_wrap a span img {width:auto;}
+
+/* 내가꾸민포토티켓 */
+#dev2014 .movielog-detail-wrap .article-movie-info {overflow:visible;}
+#dev2014 .movielog-detail-wrap .article-movie-info:after{content:''; display:block; clear:both;}
+
+#dev2014 #layer_wrap_phototicket .btn_wrap {margin:23px 0 -15px 0; text-align:center;}
+
+
+
+
+/* end : 201409 개선작업 ------------------------------------------------------- */
+
+/* 포토티켓 오프라인 발권대상 티켓 뒷면 추가 유형 : 20150918 */
+#dev2014 .pop-contents .box-phototicket .box-contents .published {position:absolute; text-align:center; left:0; right:0; bottom:32px; color:#000; font-size:12px; font-weight:bold;}
+#dev2014 .pop-contents .box-phototicket .box-contents .copy {position:absolute; text-align:center; left:0; right:0; bottom:20px; margin-left:0 !important;}
+#dev2014 .pop-contents .box-phototicket .box-contents.offline .alert {border-top:2px solid #000; border-bottom:2px solid #000; background:none; padding:10px 0 ; height:auto; font-size:12px; margin-top:9px; line-height:1.5; color:#000;}
+#dev2014 .pop-contents .box-phototicket .box-contents.offline .barcode_num {display:block; margin-top:9px; text-align:center; color:#000;}

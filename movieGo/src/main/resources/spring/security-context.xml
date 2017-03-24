@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context
+		http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/security
+		http://www.springframework.org/schema/security/spring-security-4.1.xsd">
+
+	<context:component-scan base-package="com.moviego"/>
+	
+	<http pattern="/res/**" security="none" />
+	<http pattern="/reserve*" auto-config="true" use-expressions="true">
+		<csrf disabled="true"/>
+		
+		<intercept-url pattern="/reserve*" access="permitAll"/>
+		
+		<form-login login-page="/reserve"
+						   login-processing-url="/reserveLogin"
+						   username-parameter="txtUserId"
+						   password-parameter="txtPassword"
+						   authentication-failure-url="/reserve?login_error"
+						   authentication-success-handler-ref="reserveAuthenticationSuccess"/>
+	</http>
+	
+	<beans:bean id="reserveAuthenticationSuccess" class="com.moviego.member.MyAuthenticationSuccessHandler">
+	   <beans:property name="defaultTargetUrl" value="/reserve"/>
+	</beans:bean>
+	
+	<http auto-config="true" use-expressions="true">
+		<csrf disabled="true"/>
+		
+		<!-- permitAll : 모든 사용자가 접근할 수 있도록 항상 승인 -->
+		<intercept-url pattern="/index.jsp" access="permitAll"/>
+		<intercept-url pattern="/main" access="permitAll"/>
+		<intercept-url pattern="/gpa/mygpa" access="hasRole('ROLE_5')"/>
+		<intercept-url pattern="/reserve/**" access="permitAll"/>
+		<intercept-url pattern="/member/**" access="permitAll"/>
+		<intercept-url pattern="/myinfo/**" access="permitAll"/>
+		<intercept-url pattern="/inquiry/**" access="permitAll"/>
+		<intercept-url pattern="/gpa/**" access="permitAll"/>
+		<intercept-url pattern="/notice/**" access="permitAll"/>
+		
+		<!-- 모든페이지 -->	<!-- 순서 중요!!! /** 이 위에 있으면 전부 다 받음. -->
+		<intercept-url pattern="/**" access="hasAnyRole('ROLE_0', 'ROLE_5')"/>
+
+		<!-- 사용자 정의 로그인 form -->		<!-- 각 속성은 pdf 참조. -->
+		<form-login login-page="/member/login"
+						   login-processing-url="/member/login_check"
+						   username-parameter="txtUserId"
+						   password-parameter="txtPassword"
+						   authentication-failure-url="/member/login?login_error"
+						   default-target-url="/"			
+						   always-use-default-target="false"
+						   authentication-success-handler-ref="authenticationSuccess"/>
+		<!-- always-use-default-target="false" : 게시판에서 로그인했을 경우 로그인 후 게시판으로 돌아감. -->
+		
+		<logout logout-url="/member/logout" invalidate-session="true" logout-success-url="/"/>
+
+		<!-- 접근 권한이 없는 경우 -->
+		<access-denied-handler error-page="/member/noAuthorized"/>
+		
+		<!-- 동일아이디로 한명 접근(기존 세션 만료) -->
+		<session-management>
+			<concurrency-control max-sessions="1"/>
+		</session-management>
+		
+	</http>
+	
+	<!-- 로그인 성공 시 -->
+	<beans:bean id="authenticationSuccess" class="com.moviego.member.MyAuthenticationSuccessHandler"/>
+	
+	<!-- DB를 이용한 인증 -->																											<!-- enabled 이 1일 때만 로그인 가능. -->
+	<jdbc-user-service data-source-ref="dataSource"
+								 id="userService"
+								 users-by-username-query="select id as username, pass as password, enabled 
+								 										from member2 where id=?"	
+								 authorities-by-username-query="select id as username, authority from memberAuthority where id=?"/>
+    
+	<authentication-manager>
+		<authentication-provider user-service-ref="userService">
+			<password-encoder hash="sha-256"/>	<!-- 비밀번호 암호화 처리 -->
+		</authentication-provider>
+	</authentication-manager>
+
+</beans:beans>

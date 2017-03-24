@@ -1,0 +1,508 @@
+
+
+-- ****** 계정에 생성된 테이블 모두 삭제 *******
+
+-- SELECT 'DROP '
+--   || OBJECT_TYPE
+--   || ' '
+--   || OBJECT_NAME
+--   || DECODE(OBJECT_TYPE,'TABLE',' CASCADE CONSTRAINTS;',';')
+-- FROM USER_OBJECTS
+-- WHERE OBJECT_TYPE = 'TABLE' OR OBJECT_TYPE = 'VIEW';
+
+-- ******************************
+
+
+
+
+-- ************** 계정 생성*************
+
+CREATE USER movieGo IDENTIFIED BY "java$!";
+GRANT CONNECT, RESOURCE TO movieGo;
+ALTER USER movieGo DEFAULT TABLESPACE USERS;
+ALTER USER movieGo TEMPORARY TABLESPACE TEMP;
+
+-- ****************************************
+
+
+-- **************** 회원 *********************
+
+-- 회원1
+CREATE TABLE member1 (
+     mIdx      	    NUMBER,
+     isMember       NUMBER(1) DEFAULT 1,
+     CONSTRAINT     pk_member1_mIdx PRIMARY KEY(mIdx)
+);
+
+-- 회원 정보
+CREATE TABLE member2 (
+     mIdx          NUMBER,
+     id            VARCHAR2(10),
+     name     	   VARCHAR2(15) NOT NULL,
+     pass          VARCHAR2(100) NOT NULL,
+     enabled       NUMBER(1) DEFAULT 1,
+     birth         DATE NOT NULL,
+     email         VARCHAR2(30) NOT NULL,
+     tel           VARCHAR2(15) NOT NULL,
+     reg_date  	   DATE DEFAULT SYSDATE,
+     modify_date   DATE DEFAULT SYSDATE,
+     last_login    DATE,
+     CONSTRAINT    pk_member2_mIdx PRIMARY KEY(mIdx),
+     CONSTRAINT    uq_member2_id UNIQUE(id),
+     CONSTRAINT    fk_member2_mIdx FOREIGN KEY(mIdx)
+                   REFERENCES member1(mIdx)
+);
+
+-- 어쏘러티(권한) 테이블
+CREATE TABLE memberAuthority (
+     num         NUMBER NOT NULL,
+     id          VARCHAR2(10) NOT NULL,
+     authority   VARCHAR2(100) NOT NULL,
+     CONSTRAINT  pk_memberAuthority_num PRIMARY KEY(num),
+     CONSTRAINT  uq_memberAuthority_id UNIQUE(id, authority),
+     CONSTRAINT  fk_memberAuthority_id FOREIGN KEY(id)
+                 REFERENCES member2(id)
+	         ON DELETE CASCADE
+);
+
+
+-- 포인트 테이블
+create table mileage (
+    mileageIdx  NUMBER,
+    mIdx        NUMBER,
+    savePoint   NUMBER,
+    kind        VARCHAR2(20) not null,
+    regdate     DATE DEFAULT SYSDATE,
+    CONSTRAINT  pk_mileage_mileageIdx PRIMARY KEY(mileageIdx),
+    CONSTRAINT  fk_mileage_mIdx FOREIGN KEY(mIdx)
+                REFERENCES member1(mIdx)
+);
+
+-- 자주찾는 영화관
+CREATE TABLE bookmarkcinema (
+    bmcinemaIdx   NUMBER,
+    mIdx          NUMBER,
+    CONSTRAINT    pk_bookmarkcinema_bmcinemaIdx PRIMARY KEY(bmcinemaIdx),
+    CONSTRAINT    fk_bookmarkcinema_mIdx FOREIGN KEY(mIdx)
+                  REFERENCES member1(mIdx)
+);
+
+
+-- *****************************************************
+
+-- ********* 지역 **************
+
+-- 도시
+create table city (
+    cityIdx    number,
+    city_name  varchar(20) not null,
+    CONSTRAINT    pk_city_cityIdx PRIMARY KEY(cityIdx)
+);
+
+-- *********************************
+
+-- ************* 극장 ***********************
+
+-- 지점
+create table cinema (
+    cinemaIdx     number,
+    cityIdx      number,
+    cinemaName    varchar(30) not null,
+    multiplex     number not null,
+    addr1         varchar(20) not null,
+    addr2         varchar(100) not null,
+    addr3         varchar(100) not null,
+    explanation   varchar(4000),
+    regdate       DATE DEFAULT SYSDATE,
+    CONSTRAINT    pk_cinema_cinemaIdx PRIMARY KEY(cinemaIdx),
+    CONSTRAINT    fk_cinema_cityIdx FOREIGN KEY(cityIdx)
+                  REFERENCES city(cityIdx)
+);
+
+-- 상영관
+create table multiplex (
+    multiplexIdx    number,
+    cinemaIdx       number,
+    name            varchar(10) not null,
+    grade           number(1) not null,
+    enable          number(1) not null,
+    seat            number(3),
+    seatmap         clob,
+    CONSTRAINT      pk_multiplex_multiplexIdx PRIMARY KEY(multiplexIdx),
+    CONSTRAINT      fk_multiplex_cinemaIdx FOREIGN KEY(cinemaIdx)
+                    REFERENCES cinema(cinemaIdx)
+);
+
+-- 일정
+create table schedule (
+    scheduleIdx     number,
+    movieIdx        number,
+    multiplexIdx    number,
+    startTime       date not null,
+    inning          number(2) not null,
+    CONSTRAINT      pk_schedule_scheduleIdx primary key(scheduleIdx),
+    CONSTRAINT      fk_schedule_movieIdx foreign key(movieIdx)
+		    REFERENCES movie(movieIdx),
+    CONSTRAINT      fk_schedule_multiplexIdx foreign key(multiplexIdx)
+		    REFERENCES multiplex(multiplexIdx)
+);
+
+
+-- ***********************************
+
+-- *********** 직원 **************
+
+create table employee (
+    eIdx            number,
+    cinemaIdx       number,
+    eid             varchar(10) not null,
+    ename  	    varchar(15) not null,
+    epass	    varchar(20) not null,
+    jumin           varchar(20) not null,
+    grade           varchar(20) not null,
+    email           varchar(30) not null,
+    tel             varchar(15) not null,
+    CONSTRAINT      pk_employee_eIdx primary key(eIdx),
+    CONSTRAINT      fk_employee_cinemaIdx FOREIGN KEY(cinemaIdx)
+                    REFERENCES cinema(cinemaIdx)
+);
+
+ -- 직원 권한 테이블    
+CREATE TABLE employeeAuthority (
+     num         NUMBER NOT NULL,
+     eidx        number NOT NULL,
+     authority   VARCHAR2(100) NOT NULL,
+     CONSTRAINT  pk_employeeAuthority_num PRIMARY KEY(num),
+     CONSTRAINT  uq_employeeAuthority_eidx UNIQUE(eidx, authority),
+     CONSTRAINT  fk_employeeAuthority_eidx FOREIGN KEY(eidx)
+                 REFERENCES employee(eidx) ON DELETE CASCADE
+);
+
+********************************
+
+-- ********* 예매 *****************
+
+-- 예매_정보
+create table reserve_info (
+    reserveIdx    number,
+    scheduleIdx     number,
+    mIdx      	    NUMBER,
+    reserve_ea     number not null,
+    price         number not null,
+    CONSTRAINT      pk_reserveinfo_reserveIdx primary key(reserveIdx),
+    CONSTRAINT      fk_reserveinfo_scheduleIdx foreign key(scheduleIdx)
+		    REFERENCES schedule(scheduleIdx),
+    CONSTRAINT    fk_reserveinfo_mIdx FOREIGN KEY(mIdx)
+                   REFERENCES member1(mIdx)
+);
+
+-- 예매_구분
+create table reserve_kind (
+    kindIdx    number,
+    reserveIdx    number,
+    kind       varchar(10) not null,
+    count      number(2),
+    CONSTRAINT      pk_reservekind_kindIdx primary key(kindIdx),
+    CONSTRAINT      fk_reservekind_reserveIdx foreign key(reserveIdx)
+		    REFERENCES reserve_info(reserveIdx)
+);
+
+-- 예매_취소
+create table reserve_cancel(
+    reserveIdx    number,
+    price        number not null,
+    canceldate   date DEFAULT SYSDATE,
+    refunddate   date,
+    CONSTRAINT      pk_reservecancel_reserveIdx primary key(reserveIdx),
+    CONSTRAINT      fk_reservecancel_reserveIdx foreign key(reserveIdx)
+		    REFERENCES reserve_info(reserveIdx)
+);
+
+-- 결제
+create table payment (
+    paymentIdx    number,
+    reserveIdx    number,
+    payment_type  varchar(10) not null,
+    payment_content  varchar(20) not null,
+    payment_price    number not null,
+    payment_date     date DEFAULT SYSDATE,
+    CONSTRAINT      pk_payment_paymentIdx primary key(paymentIdx),
+    CONSTRAINT      fk_payment_reserveIdx foreign key(reserveIdx)
+		    REFERENCES reserve_info(reserveIdx)
+);
+
+-- 좌석
+create table seat (
+    seatIdx    number,
+    reserveIdx    number,
+    seatNum    varchar(10) not null,
+    CONSTRAINT      pk_seat_seatIdx primary key(seatIdx),
+    CONSTRAINT      fk_seat_reserveIdx foreign key(reserveIdx)
+		    REFERENCES reserve_info(reserveIdx)
+);
+
+-- 가격
+create table price (
+    priceIdx        number,
+    scheduleIdx     number,
+    price           number not null,
+    kind            number not null,
+    CONSTRAINT      pk_price_priceIdx primary key(priceIdx),
+    CONSTRAINT      fk_price_scheduleIdx foreign key(scheduleIdx)
+		    REFERENCES schedule(scheduleIdx)
+
+);
+
+
+
+-- ***********************************
+
+-- *********** 영화 **************
+
+-- 장르
+create table genre (
+    genreIdx    number,
+    genrename   varchar(15),
+    CONSTRAINT      pk_genre_genreIdx primary key(genreIdx)
+);
+
+-- 등급
+create table grade (
+    gradeIdx    number,
+    gradename   varchar(15),
+    CONSTRAINT      pk_grade_gradeIdx primary key(gradeIdx)
+);
+
+-- 영화
+create table movie (
+    movieIdx    number,
+    genreIdx    number,
+    gradeIdx    number,
+    moviename   varchar(50) not null,
+    runtime     date not null,
+    nation      varchar(15) not null,
+    director    varchar(15) not null,
+    actor       varchar(15) not null,
+    regdate     date not null,
+    CONSTRAINT      pk_movie_movieIdx primary key(movieIdx),
+    CONSTRAINT      fk_movie_genreIdx foreign key(genreIdx)
+		    REFERENCES genre(genreIdx),
+    CONSTRAINT      fk_movie_gradeIdx foreign key(gradeIdx)
+		    REFERENCES grade(gradeIdx)
+);
+
+-- 소개
+create table intro (
+    movieIdx    number,
+    poster      varchar(300) not null,
+    story       varchar(4000) not null,
+    CONSTRAINT      pk_intro_movieIdx primary key(movieIdx),
+    CONSTRAINT      fk_intro_movieIdx foreign key(movieIdx)
+		    REFERENCES movie(movieIdx)
+);
+
+-- 예고편
+create table preview (
+    previewIdx      number,
+    movieIdx        number,
+    previewname     varchar(300) not null,
+    CONSTRAINT      pk_preview_previewIdx primary key(previewIdx),
+    CONSTRAINT      fk_preview_movieIdx foreign key(movieIdx)
+		    REFERENCES movie(movieIdx)
+);
+
+-- 스틸컷
+create table stillcut (
+    stillIdx        number,
+    movieIdx        number,
+    stillcutname    varchar(300) not null,
+    CONSTRAINT      pk_stillcut_stillIdx primary key(stillIdx),
+    CONSTRAINT      fk_stillcut_movieIdx foreign key(movieIdx)
+		    REFERENCES movie(movieIdx)
+);
+
+-- 효과
+create table effect (
+    effectIdx       number,
+    movieIdx        number,
+    effect          varchar(10) not null,
+    CONSTRAINT      pk_effect_effectIdx primary key(effectIdx),
+    CONSTRAINT      fk_effect_movieIdx foreign key(movieIdx)
+		    REFERENCES movie(movieIdx)
+
+);
+
+
+************************************
+
+-- *********** 평가 **************
+
+-- 영화 좋아요
+create table movielike (
+    movieIdx        number,
+    mIdx            number,
+    CONSTRAINT      pk_movielike_movieIdx primary key(movieIdx, mIdx),
+    CONSTRAINT      fk_movielike_movieIdx foreign key(movieIdx)
+		    REFERENCES movie(movieIdx),
+    CONSTRAINT      fk_movielike_mIdx foreign key(mIdx)
+		    REFERENCES member1(mIdx)
+);
+
+-- 평점
+create table score (
+    scoreIdx        number,
+    reserveIdx     number,
+    mIdx            number,
+    content         varchar(1000) not null,
+    score           number not null,
+    regdate         date DEFAULT SYSDATE,
+    CONSTRAINT      pk_score_scoreIdx primary key(scoreIdx),
+    CONSTRAINT      fk_score_reserveIdx foreign key(reserveIdx)
+		    REFERENCES reserve_info(reserveIdx),
+    CONSTRAINT      fk_score_mIdx foreign key(mIdx)
+		    REFERENCES member1(mIdx)
+);
+
+-- 평점 좋아요
+create table scorelike (
+    scoreIdx        number,
+    mIdx            number,
+    CONSTRAINT      pk_scorelike_scoreIdx primary key(scoreIdx, mIdx),
+    CONSTRAINT      fk_scorelike_scoreIdx foreign key(scoreIdx)
+		    REFERENCES score(scoreIdx),
+    CONSTRAINT      fk_scorelike_mIdx foreign key(mIdx)
+		    REFERENCES member1(mIdx)
+);
+
+-- 평점 신고
+create table scorereport (
+    scoreIdx        number,
+    mIdx            number,
+    content         varchar(500) not null,
+    CONSTRAINT      pk_scorereport_scoreIdx primary key(scoreIdx, mIdx),
+    CONSTRAINT      fk_scorereport_scoreIdx foreign key(scoreIdx)
+          REFERENCES score(scoreIdx)ON DELETE CASCADE,
+    CONSTRAINT      fk_scorereport_mIdx foreign key(mIdx)
+          REFERENCES member1(mIdx) ON DELETE CASCADE
+);
+
+***********************************
+
+-- *********** 문의 **************
+
+-- 이메일 문의
+create table emailinquiry (
+    emailIdx      number,
+    mIdx          number,
+    cinemaIdx     number,
+    type          varchar(15) not null,
+    title         varchar(50) not null,
+    content       clob not null,
+    regdate       date DEFAULT SYSDATE,
+    constraint    pk_emailinquiry_emailIdx primary key(emailIdx),
+    CONSTRAINT    fk_emailinquiry_cinemaIdx foreign key(cinemaIdx)
+		  REFERENCES cinema(cinemaIdx)
+);
+
+-- 분실물 문의
+create table lostinquiry (
+    lostIdx       number,
+    mIdx          number,
+    cinemaIdx     number,
+    type          varchar(15) not null,
+    color         varchar(15) not null,
+    content       clob not null,
+    lostdate      date not null,
+    regdate       date DEFAULT SYSDATE,
+    constraint    pk_lostinquiry_lostIdx primary key(lostIdx),
+    CONSTRAINT    fk_lostinquiry_cinemaIdx foreign key(cinemaIdx)
+		  REFERENCES cinema(cinemaIdx)
+);
+
+-- 이메일 답변
+create table email_anwser (
+    anwserIdx    number,
+    emailIdx     number,
+    mIdx         number,
+    eIdx         number,
+    content      clob not null,
+    regdate      date DEFAULT SYSDATE,
+    CONSTRAINT    pk_emailanwser_anwserIdx primary key(anwserIdx),
+    CONSTRAINT    fk_emailanwser_emailIdx foreign key(emailIdx)
+		  REFERENCES emailinquiry(emailIdx),
+    CONSTRAINT    fk_emailanwser_mIdx foreign key(mIdx)
+		  REFERENCES member1(mIdx),
+    CONSTRAINT    fk_emailanwser_eIdx foreign key(eIdx)
+		  REFERENCES employee(eIdx)
+);
+
+-- 분실물 답변
+create table lost_anwser (
+    anwserIdx    number,
+    emailIdx     number,
+    mIdx         number,
+    eIdx         number,
+    content      clob not null,
+    regdate      date DEFAULT SYSDATE,
+    CONSTRAINT    pk_lostanwser_anwserIdx primary key(anwserIdx),
+    CONSTRAINT    fk_lostanwser_emailIdx foreign key(emailIdx)
+		  REFERENCES emailinquiry(emailIdx),
+    CONSTRAINT    fk_lostanwser_mIdx foreign key(mIdx)
+		  REFERENCES member1(mIdx),
+    CONSTRAINT    fk_lostanwser_eIdx foreign key(eIdx)
+		  REFERENCES employee(eIdx)
+);
+
+-- 공지사항
+create table notice (
+    noticeIdx    number,
+    eIdx         number,
+    notice       number(1) not null,
+    subject      varchar(100) not null,
+    content      clob not null,
+    hitcount     number default 0,
+    type         varchar(30) not null,
+    regdate      date default sysdate,
+    CONSTRAINT   pk_notice_noticeIdx PRIMARY KEY(noticeIdx),
+    CONSTRAINT   fk_notice_eIdx FOREIGN KEY(eIdx)
+                 REFERENCES employee(eIdx)
+);
+
+-- 공지사항_파일
+create table noticefile (
+    fileIdx      number,
+    noticeIdx    number,
+    eIdx         number,
+    savefilename varchar2(300) not null,
+    orifilename  varchar2(300) not null,
+    filesize     number not null,
+    CONSTRAINT   pk_noticefile_fileIdx PRIMARY KEY(fileIdx),
+    CONSTRAINT   fk_noticefile_noticeIdx FOREIGN KEY(noticeIdx)
+                 REFERENCES notice(noticeIdx),
+    CONSTRAINT   fk_noticefile_eIdx FOREIGN KEY(eIdx)
+                 REFERENCES employee(eIdx)
+);
+
+-- 자주찾는 질문
+create table faq (
+    faqIdx     number,
+    title      varchar(50) not null,
+    content    clob not null,
+    hitcount   number default 0,
+    type       varchar(30) not null,
+    regdate    date default sysdate,
+    constraint pk_faq_faqIdx primary key(faqIdx)
+);
+
+-- 영화관람권
+CREATE TABLE freeticket (
+     ticketIdx 	    NUMBER,
+     midx           number not null,
+     kind           varchar2(15) not null,
+     regdate        date DEFAULT sysdate,
+     CONSTRAINT     pk_freeticket_ticketIdx PRIMARY KEY(ticketIdx),
+     CONSTRAINT    fk_freeticket_mIdx FOREIGN KEY(mIdx)
+                   REFERENCES member1(mIdx)
+);
+
+

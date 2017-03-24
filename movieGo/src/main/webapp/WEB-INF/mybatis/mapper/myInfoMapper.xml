@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="myInfo">
+
+	<select id="getMember" parameterType="Integer" resultType="com.moviego.myinfo.main.MyInfo">
+		select id, name, nvl(sum(decode(kind, '적립', savepoint)),0)-nvl(sum(decode(kind, '사용', savepoint)),0) point
+		from (
+		    select midx, id, name
+		    from member2
+		    where midx=#{memberIdx}
+		) tb left outer join mileage m on tb.midx=m.midx
+		group by id, name
+	</select>
+
+	<select id="getReserveMovies" parameterType="Integer" resultType="com.moviego.myinfo.main.MyInfo">
+		select reserveidx, cinemaname, name multiplexname, moviename, starttime, 
+					to_char(reservedate, 'yyyy-mm-dd') reservedate, nvl(poster,'noImg') poster
+		from (
+		      select r.reserveidx, scheduleidx, reservedate
+		      from reserve_info r, reserve_cancel c
+          where  r.reserveidx=c.reserveidx(+) and c.reserveidx is null and midx=#{memberIdx}
+		      ) tb join schedule s on tb.scheduleidx=s.scheduleidx
+               join multiplex m on s.multiplexidx=m.multiplexidx
+		           join cinema c on m.cinemaidx=c.cinemaidx
+		           join movie m on s.movieidx=m.movieidx
+		           left outer join intro i on m.movieidx=i.movieidx
+          where  to_date(starttime, 'yyyy-mm-dd hh24:mi') > sysdate-(20/(24*60))
+	</select>
+
+	<select id="getSeats" parameterType="Integer" resultType="com.moviego.myinfo.main.MyInfo">
+		select seatnum
+		from seat
+		where reserveidx=#{reserveIdx}
+		order by seatnum
+	</select>
+
+	<select id="getPayment" parameterType="Integer" resultType="com.moviego.myinfo.main.MyInfo">
+		select payment_type, payment_price
+		from payment
+		where reserveidx=#{reserveIdx}
+	</select>
+	
+	<select id="getPaymentCancel" parameterType="Integer" resultType="com.moviego.myinfo.main.MyInfo">
+		select reserveIdx, payment_price
+		from payment
+		where reserveidx=#{reserveIdx} and payment_type not in '적립금'
+	</select>
+	
+	<insert id="insertReserveCancel" parameterType="com.moviego.myinfo.main.MyInfo">
+		insert into reserve_cancel(reserveidx, price, refunddate) 
+           				 values(#{reserveIdx}, #{payment_price}, sysdate)
+	</insert>
+	
+	<delete id="deleteSeat" parameterType="Integer">
+		delete from seat where reserveidx=#{reserveIdx}
+	</delete>
+	
+	<delete id="deleteMileage" parameterType="Integer">
+		delete from mileage where reserveidx=#{reserveIdx}
+	</delete>
+	
+	
+	
+	
+</mapper>
+
+
+
+
+
+

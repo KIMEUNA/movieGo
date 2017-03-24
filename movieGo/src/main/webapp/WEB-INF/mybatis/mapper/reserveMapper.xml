@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="reserve">
+
+	<sql id="where">
+		<where>
+			<if test="cinemaIdx != null">
+				cinemaidx=#{cinemaIdx}
+			</if>
+			
+		 </where>
+	</sql>
+	
+	<sql id="and">
+			<if test="date != null">
+				and to_char(to_date(starttime, 'YYYY-MM-DD HH24:MI'), 'yyyy.mm.dd') = #{date}
+			</if>
+			<if test="movieIdx != null"> 
+				 and movieidx=#{movieIdx}
+			</if>
+	</sql>
+
+		<!-- 예매율순, 가나다 순 조건줘서 출력하기. -->
+		<!-- 해당 영화관에서 상영하고 있는 영화만 출력. -->
+	<select id="getMovieList" parameterType="map" resultType="com.moviego.reserve.Reserve">
+		select movieIdx, movieName, genreName, gradeName
+		from (	
+				select m.movieIdx, movieName, genreIdx, gradeIdx
+				from movie m, (
+				                      select DISTINCT(movieidx)
+				                      from (
+				                           select multiplexidx 
+				                           from multiplex 
+				                           <include refid="where"/>
+				                           ) tb1 
+				                      join schedule s on tb1.multiplexidx = s.multiplexidx
+				                      where to_date(substr(REGEXP_REPLACE(starttime, '[^0-9]'), 0, 8), 'YYYYMMDD') > sysdate-1
+				                      <include refid="and"/>
+				                    ) tb2
+				where m.movieIdx=tb2.movieIdx
+				) tb3
+		join genre g1 on tb3.genreIdx=g1.genreIdx
+		join grade g2 on tb3.gradeIdx=g2.gradeIdx
+		group by movieIdx, movieName, genreName, gradeName
+		order by moviename
+	</select>
+
+		<!-- 해당 영화를 상영하고 있는 영화관만 select 해오기. -->
+	<select id="getCityList" parameterType="map" resultType="com.moviego.reserve.Reserve">
+			select c2.city_name as cityname, tb3.*
+			from (
+				        select cityidx, count(tb2.cinemaidx) as cinemaCount    <!-- 해당 지점의 도시와 지점 개수 -->
+				        from cinema c1 join (
+				                          select DISTINCT(cinemaidx) 						    <!-- 해당 영화를 상영하는 상영관의 지점 -->
+				                          from (
+				                                select scheduleidx, multiplexidx, movieidx  <!-- 해당 영화를 상영하는 일정과 상영관 -->
+				                                from schedule 
+				                                where to_date(substr(REGEXP_REPLACE(starttime, '[^0-9]'), 0, 8), 'YYYYMMDD') > sysdate-1 
+				                                	<include refid="and"/>
+				                                ) tb1 
+				                          join multiplex m on tb1.multiplexidx = m.multiplexidx
+				                          ) tb2 on c1.cinemaidx=tb2.cinemaidx
+				        group by cityidx
+			      ) tb3
+			join city c2 on tb3.cityidx=c2.cityidx
+	</select>
+	
+			<!-- 해당 도시에 있는 영화관만 빼오기. (선택한 영화를 상영하고 있는 영화관) -->
+	<select id="getCinemaList" parameterType="map" resultType="com.moviego.reserve.Reserve">
+		select c1.cinemaidx, cinemaname   <!-- 지점 이름 -->
+		from cinema c1 
+			join (
+			     select DISTINCT(cinemaidx)        <!-- 해당 영화를 상영하는 상영관의 지점 -->
+			     from (
+			           select scheduleidx, multiplexidx, movieidx  <!-- 해당 영화를 상영하는 일정과 상영관 -->
+			           from schedule 
+			           where to_date(substr(REGEXP_REPLACE(starttime, '[^0-9]'), 0, 8), 'YYYYMMDD') > sysdate-1
+			           		<include refid="and"/>
+			           ) tb1 
+			     join multiplex m on tb1.multiplexidx = m.multiplexidx
+			     ) tb2 
+			on c1.cinemaidx=tb2.cinemaidx
+		where cityidx = #{cityIdx}
+	</select>
+	
+	<select id="getDateList" parameterType="map" resultType="com.moviego.reserve.Reserve">
+		select rownum, tb1.*, to_char(dates, 'dy') as day
+		from (
+				select DISTINCT(to_date(substr(REGEXP_REPLACE(starttime, '[^0-9]'), 0, 8), 'YYYYMMDD')) as dates
+				from schedule s 
+				join (
+				      select multiplexidx
+				      from MULTIPLEX
+				     <include refid="where"/>
+				      ) tb 
+				on s.multiplexidx=tb.multiplexidx
+				<where>
+					<if test="movieIdx != null">
+						movieIdx=#{movieIdx}
+					</if>
+				</where>
+				) tb1 
+		where dates > sysdate-1
+		order by dates
+	</select>
+	
+	<select id="getScheduleList" parameterType="map" resultType="com.moviego.reserve.Reserve">
+		<!-- 상영관 이름, 좌석수, 시작시간, 잔여좌석수,  런타임 -->
+    	select tb1.*
+		from (
+		      select s.scheduleidx, substr(starttime, 12, 5) starttime, endtime, tb.*, tb2.*, seat-nvl(ea,0) count
+		      from schedule s 
+		      join (
+		            select multiplexidx, name as multiplexname, grade as multiplexgrade, seat
+		            from multiplex
+		            where cinemaidx = #{cinemaIdx}
+		            ) tb on s.multiplexidx=tb.multiplexidx
+		      join (
+                select movieidx
+                from movie
+                where movieidx = #{movieIdx}
+                ) tb2 on s.movieidx=tb2.movieidx
+              left outer join (
+                select scheduleidx, sum(reserve_ea) ea
+                from reserve_info
+                group by scheduleidx
+                ) tb3 on s.scheduleidx=tb3.scheduleidx
+          where to_char(to_date(starttime, 'YYYY-MM-DD HH24:MI'), 'yyyy.mm.dd') = #{date}
+		      ) tb1
+		order by multiplexidx, starttime
+	</select>
+	
+	<select id="getTimeInfo" parameterType="Integer" resultType="com.moviego.reserve.Reserve">
+		select moviename, name multiplexname, ymd||'('||day||') '||time starttime, endtime, cinemaname, nvl(poster, 'noImg') poster
+		from (
+		      select scheduleidx, multiplexidx, movieidx, endtime, 
+                    to_char(to_date(starttime, 'yyyy-mm-dd hh24:mi'), 'yyyy.mm.dd') ymd,
+	                  to_char(to_date(starttime, 'yyyy-mm-dd hh24:mi'), 'dy') as day, 
+	                  to_char(to_date(starttime, 'yyyy-mm-dd hh24:mi'), 'hh24:mi') as time
+		      from schedule
+		      where scheduleidx=#{scheduleIdx}
+		      ) s
+		join movie m on s.movieidx=m.movieidx 
+		left outer join intro i on m.movieidx=i.movieidx
+		join multiplex m1 on s.multiplexidx=m1.multiplexidx
+		join cinema c on m1.cinemaidx=c.cinemaidx
+	</select>
+	
+		<!-- 해당 극장에서 상영 안하는 영화 가져오기. -->
+	<select id="getNoneMovies" parameterType="list" resultType="com.moviego.reserve.Reserve">
+		select movieIdx, movieName, gradename 
+		from (
+		      select DISTINCT(m.movieidx), moviename, gradeidx
+		      from movie m join schedule s on m.movieidx=s.movieidx
+		      where m.movieidx not in
+				<foreach item="movieIdx" collection="list" separator="," open="(" close=")">
+					${movieIdx}
+				</foreach>
+			  ) tb
+		join grade g on tb.gradeidx=g.gradeidx
+	</select>
+	
+		<!-- 해당 영화를 상영 안하는 지점 가져오기. -->
+	<select id="getNoneCinemas" parameterType="map" resultType="com.moviego.reserve.Reserve">
+		select cinemaidx, cinemaname
+		from cinema
+		where cityidx = #{cityIdx} and 
+					cinemaidx not in 
+				<foreach item="cinemaIdx" collection="cIdxList" separator="," open="(" close=")">
+					${cinemaIdx}
+				</foreach>
+	</select>
+	
+	<!-- 선택한 영화 정보 빼오기. -->
+	<select id="getMovie" parameterType="Integer" resultType="com.moviego.reserve.Reserve">
+		select tb.*, nvl(poster, 'noImg') as poster
+		from (
+		      select m.movieidx, genrename, 
+		      			decode(gradename, 
+		      								'rating-all', '전체', 
+		      								'rating-12', '12세', 
+		      								'rating-15', '15세', 
+		      								'rating-18', '18세') || ' 관람가' as gradename, 
+		      			moviename, runtime
+		      from movie m
+          join genre g1 on m.genreIdx=g1.genreIdx
+          join grade g2 on m.gradeIdx=g2.gradeIdx
+		      where movieidx = #{movieIdx}
+		      ) tb
+		left outer join intro i on tb.movieidx=i.movieidx
+	</select>
+	
+	<select id="getCinema" parameterType="Integer" resultType="com.moviego.reserve.Reserve">
+		select cinemaidx, cinemaname
+		from cinema
+		where cinemaidx = #{cinemaIdx}
+	</select>
+	
+	<!-- 선택 영화, 상영관, 시간, 총좌석, 잔여좌석, 시트맵, 상영일정에 대한 가격표 -->	
+	<select id="getSeat" parameterType="Integer" resultType="com.moviego.reserve.Reserve">
+		select cinemaname, name multiplexname, moviename, starttime, seat, seatmap
+		from (
+		      select multiplexidx, movieidx, starttime
+		      from SCHEDULE
+		      where SCHEDULEIDX=#{scheduleIdx}
+		      ) tb join multiplex mu on tb.multiplexidx=mu.multiplexidx
+		           join movie mo on tb.movieidx=mo.movieidx
+		           join cinema c on mu.cinemaidx=c.cinemaidx
+	</select>
+	
+	<!-- 예약되어 있는 좌석을 받아온다. -->
+	<select id="reserveState" parameterType="Integer" resultType="com.moviego.reserve.Reserve">
+			select seatnum
+			from seat s 
+			join (
+			      select reserveidx
+			      from RESERVE_INFO
+			      where scheduleIdx=#{scheduleIdx}
+			) tb on s.reserveidx=tb.reserveidx
+	</select>
+	
+	<select id="getPrice" parameterType="Integer" resultType="com.moviego.reserve.Reserve">
+		select price, kind
+		from price
+		where scheduleidx=#{scheduleIdx}
+	</select>
+	
+	<select id="getReserveInfo" parameterType="Integer" resultType="com.moviego.reserve.Reserve">
+		select moviename, name multiplexname, starttime, cinemaname, nvl(poster, 'noImg') poster
+		from (
+		      select scheduleidx, multiplexidx, movieidx, starttime
+		      from schedule
+		      where scheduleidx=#{scheduleIdx}
+		      ) s
+		join movie m on s.movieidx=m.movieidx 
+		left outer join intro i on m.movieidx=i.movieidx
+		join multiplex m1 on s.multiplexidx=m1.multiplexidx
+		join cinema c on m1.cinemaidx=c.cinemaidx
+	</select>
+	
+	<select id="getPoint" parameterType="Integer" resultType="Integer">
+		select nvl(sum(decode(kind, '적립', savepoint)),0)-nvl(sum(decode(kind, '사용', savepoint)),0) point
+		from(
+			  select savepoint, kind
+			  from mileage
+			  where midx=#{memberIdx}
+		)
+	</select>
+	
+	<select id="getReserveSeq" resultType="Integer">
+		select reserveinfo_seq.nextval from dual
+	</select>
+	
+	<insert id="insertReserveInfo" parameterType="com.moviego.reserve.Reserve">
+		insert into reserve_info(reserveidx, scheduleidx, midx, reserve_ea, price)
+						values(#{reserveIdx}, #{scheduleIdx}, #{memberIdx}, #{count}, #{totPrice})
+	</insert>
+	
+	<insert id="insertReserveKind" parameterType="com.moviego.reserve.Reserve">
+		insert into reserve_kind(kindidx, reserveidx, kind, count)
+						values(reservekind_seq.nextval, #{reserveIdx}, #{kind}, #{count})
+	</insert>
+	
+	<insert id="insertSeat" parameterType="com.moviego.reserve.Reserve">
+		insert into seat(seatidx, reserveidx, seatnum)
+						values(seat_seq.nextval, #{reserveIdx}, #{seatNum})
+	</insert>
+	
+	<insert id="insertPayment" parameterType="com.moviego.reserve.Reserve">
+		insert into payment(paymentidx, reserveidx, payment_type, payment_price)
+						values(payment_seq.nextval, #{reserveIdx}, #{payment}, #{price})
+	</insert>
+	
+	<insert id="insertMileage" parameterType="com.moviego.reserve.Reserve">
+		insert into mileage(mileageidx, reserveidx, midx, savepoint, kind)
+						values(mileage_seq.nextval, #{reserveIdx}, #{memberIdx}, #{price}, #{kind})
+	</insert>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+</mapper>

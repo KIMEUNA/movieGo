@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="point">
+
+	<select id="dataCount" parameterType="map" resultType="Integer">
+		select nvl(count(*),0) from mileage
+		<![CDATA[
+	    WHERE mIdx=2 AND regdate >= #{startdate}
+			           AND regdate <= #{enddate}
+		]]>
+	</select>
+
+	<select id="getReadPointList" parameterType="map" resultType="com.moviego.myinfo.point.Point">
+		select *
+		from (
+		select rownum rnum, cinemaName, tb.*
+		from(
+				SELECT reserveIdx, kind, savePoint, TO_CHAR(regdate, 'YYYY-MM-DD') regdate
+				FROM mileage
+			<![CDATA[
+			    WHERE mIdx=2 AND regdate >= #{startdate}
+					           AND regdate <= #{enddate}
+			]]>
+				order by regdate desc
+				) tb 
+				JOIN reserve_Info r ON tb.reserveIdx = r.reserveIdx
+				JOIN schedule s ON r.scheduleIdx = s.scheduleIdx
+				JOIN multiplex m ON s.multiplexIdx = m.multiplexIdx
+				JOIN cinema c ON m.cinemaIdx = c.cinemaIdx
+				
+	<![CDATA[
+			 where rownum <= ${end} 
+		) where rnum >= ${start}
+	]]>
+	</select>
+	
+	<select id="getReadPoint" parameterType="Integer" resultType="com.moviego.myinfo.point.Point">
+		select nvl(sum(decode(kind, '적립', savePoint)),0)-nvl(sum(decode(kind, '사용', savePoint)),0) savePoint
+		from mileage
+		where midx=#{memberIdx}
+	</select>
+	
+</mapper>

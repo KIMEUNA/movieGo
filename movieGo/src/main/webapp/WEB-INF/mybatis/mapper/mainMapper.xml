@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="main">
+
+	<select id="getMovieList" resultType="com.moviego.main.Main">
+		select m.movieidx, moviename 
+ 		from movie m right outer join (
+    		select movieidx from schedule    
+  		) s on m.movieidx=s.movieidx 
+  		group by m.movieidx,moviename
+	</select>
+	
+	<select id="getMovieCount" parameterType="map" resultType="Integer">
+		select nvl(count(*),0) from ( 
+     		select m.movieidx, moviename 
+     		from movie m right outer join (
+        		select movieidx,scheduleidx from schedule    
+      	) s on m.movieidx=s.movieidx 
+      	group by m.movieidx,moviename)
+	</select>
+	
+	<select id="getNotice" resultType="com.moviego.main.Main">
+		select *
+		from(
+		    select noticeidx, subject, to_char(regdate,'yyyy.mm.dd') regdate
+		    from notice
+		    order by regdate desc
+		)where rownum=1
+	</select>
+	
+</mapper>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="myreserve">
+
+	<select id="dataCount" parameterType="map" resultType="Integer">
+		select nvl(count(*),0)
+		from (
+		    select r.reserveidx, scheduleidx
+		    from reserve_info r, reserve_cancel c
+		    where r.reserveidx=c.reserveidx(+) and c.reserveidx is null and midx=2
+		)
+	</select>
+
+	<select id="getMyReserveList" parameterType="map" resultType="com.moviego.myinfo.myreserve.MyReserve">
+		select *
+		from (
+		    select rownum rnum, m.movieidx, moviename, gradename, nvl(poster, 'noImg') poster,
+				        name multiplexname, cinemaname, count, nvl(scoreidx, -1) scoreidx, content,
+				        to_char(to_date(starttime, 'yyyy-mm-dd hh24:mi'), 'yyyy.mm.dd')||'('||
+					      to_char(to_date(starttime, 'yyyy-mm-dd hh24:mi'), 'dy')||') '||
+					      to_char(to_date(starttime, 'yyyy-mm-dd hh24:mi'), 'hh24:mi') starttime, endtime
+				from (
+				      select tb.reserveidx, scheduleidx, count(seatnum) as count
+				      from (
+				            select r.reserveidx, scheduleidx
+				            from reserve_info r, reserve_cancel c
+				            where r.reserveidx=c.reserveidx(+) and c.reserveidx is null and midx=2
+				            ) tb join seat s on tb.reserveidx=s.reserveidx
+				      group by tb.reserveidx, scheduleidx
+				      ) tb left outer join score s on tb.reserveidx=s.reserveidx
+				           join schedule s on tb.scheduleidx=s.scheduleidx
+				           join movie m on s.movieidx=m.movieidx
+				           left outer join intro i on m.movieidx=i.movieidx
+				           join grade g on m.gradeidx=g.gradeidx
+				           join multiplex m on s.multiplexidx=m.multiplexidx
+				           join cinema c on m.cinemaidx=c.cinemaidx
+		<![CDATA[
+				 where rownum <= ${end} 
+			) where rnum >= ${start}
+		]]>
+	</select>
+	
+	<select id="getReserveCancelList" parameterType="Integer" resultType="com.moviego.myinfo.myreserve.MyReserve">
+
+	</select>
+
+	
+</mapper>

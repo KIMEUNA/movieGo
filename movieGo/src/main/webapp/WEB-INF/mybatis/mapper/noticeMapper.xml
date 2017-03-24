@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="notice">
+
+  <select id="maxNum" resultType="Integer">
+  	  SELECT NVL(MAX(noticeIdx),0) FROM notice
+  </select>
+  
+  <sql id="where-list">
+	<if test="searchKey=='subject'">
+	   INSTR(subject, #{searchValue}) &gt; 0
+	</if>
+	
+	<if test="searchKey =='content'">
+	   DBMS_LOB.INSTR(content, #{searchValue}) &gt;0
+	</if>
+	
+  </sql>
+
+  <!-- 공지 글 리스트 -->
+  <select id="noticeListTop" resultType="com.moviego.customer.notice.Notice">
+  		SELECT noticeIdx, n.eIdx employeeIdx, eName employeeName, notice, subject, hitCount, type,
+  		 TO_CHAR(regDate, 'YYYY-MM-DD') regDate FROM notice n JOIN employee2 e ON n.eidx=e.eidx
+  		 WHERE notice=1
+  		 ORDER BY noticeIdx DESC
+  </select>
+  
+ <!--데이터 개수 -->
+  <select id="dataCount" parameterType="map" resultType="Integer">
+  	SELECT NVL(COUNT(*), 0) FROM notice
+  	 <where>
+  	 	<if test="searchValue != null and searchValue != '' ">
+  	 	   <include refid="where-list"/>
+  	 	</if>
+  	 </where>
+  </select>
+  
+  <!-- 글리스트  -->
+  <select id="noticeList" resultType="com.moviego.customer.notice.Notice" parameterType="map">
+     SELECT * FROM(
+     	SELECT ROWNUM rnum, tb.* FROM (
+       		SELECT noticeIdx, n.eIdx employeeIdx, eName employeeName, notice, subject, hitCount, type, regDate 
+       		FROM notice n 
+       		JOIN employee2 e ON n.eidx=e.eidx
+       		<where>
+       			<if test="searchValue != null and searchValue != '' ">
+  	 			   <include refid="where-list"/>
+  	 			</if>
+       		</where>
+       		 ORDER BY noticeIdx DESC
+       		
+    <![CDATA[
+    	) tb WHERE ROWNUM <=#{end}
+    	  ) WHERE rnum >= #{start}
+    ]]>	
+  </select>
+  
+   <!--글보기 -->
+   <select id="readNotice" resultType="com.moviego.customer.notice.Notice" parameterType="Integer">
+   		SELECT noticeIdx, n.eIdx employeeIdx , eName employeeName, type, subject, content, regDate, hitCount, notice
+   		FROM notice n
+   		JOIN employee2 e ON n.eidx=e.eidx
+   		 WHERE noticeIdx = #{noticeIdx}
+   </select>
+   
+   
+   <!-- 조회수 증가 -->
+   <update id="updateHitCount" parameterType="Integer">
+ 		UPDATE notice SET hitCount=hitCount+1 WHERE noticeIdx = #{noticeIdx}  
+   </update>
+   
+   <!--이전글 -->
+   <select id="preReadNotice" resultType="com.moviego.customer.notice.Notice" parameterType="map">
+   	    SELECT tb.* FROM( 
+      		SELECT noticeIdx, subject FROM notice
+   			<where>
+   			  	<if test="searchValue != null and searchValue !='' ">
+   			 	 	<include refid="where-list"/>
+   			  </if>
+   			  <![CDATA[
+   			  	AND (noticeIdx > #{noticeIdx})
+   			  ]]>   			
+   			</where>
+   			 ORDER BY noticeIdx ASC
+   				 ) tb WHERE ROWNUM =1
+   </select>
+   
+   
+   <!-- 다음글  -->
+   <select id="nextReadNotice" resultType="com.moviego.customer.notice.Notice" parameterType="map">
+      SELECT tb.* FROM( 
+      	SELECT noticeIdx, subject FROM notice
+      		<where>
+   			  	<if test="searchValue != null and searchValue !='' ">
+   			 	 	<include refid="where-list"/>
+   			  	</if>
+   			  	<![CDATA[
+   			  		AND (noticeIdx < #{noticeIdx})
+   			  	]]>   			
+   			</where>
+   			 ORDER BY noticeIdx DESC
+   				 ) tb WHERE ROWNUM =1
+   </select>
+   
+  	<select id="listFile" parameterType="Integer" resultType="com.moviego.customer.notice.Notice">
+	SELECT fileIdx, noticeIdx, saveFilename, oriFilename originalFilename, fileSize 
+		FROM noticeFile WHERE noticeIdx=#{noticeIdx}
+	</select>
+	
+	<select id="readFile" parameterType="Integer" resultType="com.moviego.customer.notice.Notice">
+	SELECT fileIdx, noticeIdx, saveFilename, oriFilename originalFilename, fileSize
+		FROM noticeFile WHERE fileIdx=#{fileIdx}
+	</select>
+   
+</mapper>
